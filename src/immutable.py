@@ -1,239 +1,136 @@
-class node:
+import unittest
+from hypothesis import given
+import hypothesis.strategies as st
+from immutable import *
 
-    def __init__(self,key,value,leftChild=None,rightChild=None):
-        self.key=key
-        self.value=value
-        self.leftChild=leftChild
-        self.rightChild=rightChild
-        self.count=0
+class TestImmutableList(unittest.TestCase):
 
+    def test_add(self):
+        root=node(1,1)
+        add(root, 0, 1)
+        add(root, 1, 2)
+        add(root, 'a', 3)
+        self.assertEqual(to_list(root), [[1,2],[0,1],['a',3]])
 
+    def test_size(self):
+        self.assertEqual(size(node(1,1)), 1)
+        self.assertEqual(size(node(1,1,node(0,1))), 2)
+        self.assertEqual(size(node(1,1,node(0,1),node(2,2))), 3)
+        self.assertEqual(size(node('a',1,node(0,1),node(2,2))), 3)
 
-class treeIterator:
+    def test_remove(self):
+        root1=node(1,1,node(0,1),node('a',2))
+        root1=remove(root1,'a')
+        self.assertEqual(to_list(root1), [[1,1],[0,1]])
+        root2=node(1,1,node(0,1),node('a',2))
+        root2=remove(root2,0)
+        self.assertEqual(to_list(root2), [[1,1],['a',2]])
+        root3=node(1,1,node(0,1),node(2,2))
+        try:remove(root3,3)
+        except AttributeError as error:
+            self.assertEqual(error.args[0], "The element does not exist")
+        
+    def test_to_list(self):
+        root1 = node(1,1,node(0,0),node(2,2))
+        self.assertEqual(to_list(root1), [[1, 1], [0, 0], [2, 2]])
+        root2 = node('a',1,node('b',0),node('c',2))
+        self.assertEqual(to_list(root2), [['a', 1], ['b', 0], ['c', 2]])
 
-    def __init__(self,data):
-        self.index=-1
-        self.len=len(data)
-        self.data=data
-    def __next__(self):
-        self.index+=1
-        if self.len>self.index:
-            return self.data[self.index]
-        else:
-            raise StopIteration
-    def has_next(self):
-        if self.len > self.index+1:
-            return True
-        else:
+    
+    def test_from_list(self):
+        self.assertEqual(to_list(from_list([[1, 1], [0, 0], ['a', 2]])), [[1, 1], [0, 0], ['a', 2]])
+            
+    def test_conversion(self):
+        root=from_list([[0,0],[2,2],['a',3]])
+        self.assertEqual(to_list(root), [[0, 0], [2, 2], ['a', 3]])
+
+    def test_find(self):
+        self.assertEqual(find(node(1,1,node(0,1),node(2,2)),0), 1)
+        self.assertEqual(find(node(1,1,node(0,1),node(2,2)),1), 1)
+        self.assertEqual(find(node(1,1,node(0,1),node('a',2)),'a'), 2)
+
+    def test_iterator(self) :
+        root = node(1,2,node(0,1),node('a',3))
+        list=to_list(root)
+        itor=iterator(root)
+        test=[]
+        while itor.has_next():
+            test.append(itor.__next__())
+        self.assertEqual(test, list)
+
+        self.assertRaises(StopIteration, lambda : itor.__next__())
+
+    def test_filter(self):
+        def func(k):
+            if k%2==0:
+                return True
             return False
-
-def add(tree,key,value):
-    if type(key) is str:
-        key_int = ord(key)
-        if tree.key == key_int:
-            tree.value=value
-            return True
-        if tree.key > key_int:
-            if tree.leftChild == None:
-                tree.leftChild = node(key, value)
-                return True
+        root = node(1,2,node(0,1),node('a',3))
+        list=to_list(root)
+        list2 = []
+        for i in range(len(list)):
+            if type(list[i][0]) is str :
+                if func(ord(list[i][0])):
+                    list2.append(list[i])
             else:
-                return add(tree.leftChild,key,value)
-        if tree.key < key_int:
-            if tree.rightChild == None:
-                tree.rightChild = node(key, value)
-                return True
-            else:
-                return add(tree.rightChild,key, value)
-    else:
-        if tree.key == key:
-            tree.value=value
-            return True
-        if tree.key > key:
-            if tree.leftChild == None:
-                tree.leftChild = node(key, value)
-                return True
-            else:
-                return add(tree.leftChild,key,value)
-        if tree.key < key:
-            if tree.rightChild == None:
-                tree.rightChild = node(key, value)
-                return True
-            else:
-                return add(tree.rightChild,key, value)
+                if func(list[i][0]):
+                    list2.append(list[i])
 
-def size(tree):
-    if tree != None:
-        tree.count = 1
-        tree.count+=size(tree.rightChild)+size(tree.leftChild)
-        return tree.count
-    else:
-        return 0
+        itor=filter(root, func)
+        test=[]
+        while itor.has_next():
+            test.append(itor.__next__())
+        self.assertEqual(test, list2)
 
-    
-def from_list(list):
-    if len(list)==0:
-        return None
-    if len(list) == 1:
-        root = node(list[0][0], list[0][1])
-    else:
-        first = list[0]
-        root = node(first[0], first[1])
-        for i in list[1:]:
-            add(root,i[0],i[1])
-    return root
-    
-def to_list(tree):
-    list=[]
-    def  func(node,list):
-        if node!=None:
-            temp_kv=[]
-            temp_kv.append(node.key)
-            temp_kv.append(node.value)
-            list.append(temp_kv)
-            func(node.leftChild,list)
-            func(node.rightChild,list)
-    func(tree,list)
-    return list
+    def test_map(self):
+        def func(k):
+            k+1
+        root = node(1,2,node(0,1),node('a',3))
+        list=to_list(root)
+        list2 = []
+        for i in list:
+            i[1] = func(i[1])
+            list2.append(i)
 
-def iterator(tree):
-    tree_list=to_list(tree)
-    new_list=[]
-    for i in tree_list:
-        new_list.append(i)
-    return treeIterator(new_list)
+        itor=map(root, func)
+        test=[]
+        while itor.has_next():
+            test.append(itor.__next__())
+        self.assertEqual(test, list2)
 
-def mempty():
-    return None
+    def test_reduce(self):
+        def func(k,j):
+            return k+j
+        root = node(1,2,node(0,1),node('a',3))
+        sum=reduce(iterator(root), func)
+        self.assertEqual(sum, 6)
 
-def find(tree,key):
-    if type(key) is str:
-        key_int = ord(key)
-        if type(tree.key) is str:
-            if ord(tree.key)==key_int:
-                return tree.value
-            if key_int < ord(tree.key):
-                if tree.leftChild == None:
-                    return None
-                return find(tree.leftChild,key)
-            if key_int > ord(tree.key):
-                if tree.leftChild == None:
-                    return None
-            return find(tree.rightChild, key)
-        else:
-            if tree.key==key_int:
-                return tree.value
-            if key_int < tree.key:
-                if tree.leftChild == None:
-                    return None
-                return find(tree.leftChild,key)
-            if key_int > tree.key:
-                if tree.leftChild == None:
-                    return None
-            return find(tree.rightChild, key)
-    else:
-        if type(tree.key) is str:
-            if ord(tree.key)==key:
-                return tree.value
-            if key < ord(tree.key):
-                if tree.leftChild == None:
-                    return None
-                return find(tree.leftChild,key)
-            if key > ord(tree.key):
-                if tree.leftChild == None:
-                    return None
-            return find(tree.rightChild, key)
-        else:
-            if tree.key==key:
-                return tree.value
-            if key < tree.key:
-                if tree.leftChild == None:
-                    return None
-                return find(tree.leftChild,key)
-            if key > tree.key:
-                if tree.leftChild == None:
-                    return None
-            return find(tree.rightChild, key)
+    def test_dict(self):
+        d=dict()
+        d.setting(1,1)
+        self.assertEqual(d.getting(1), 1)
+        d.setting(0,0)
+        self.assertEqual(d.getting(0), 0)
+        d.setting('a', 5)
+        self.assertEqual(d.getting('a'), 5)
+        
+    def test_mconcat(self):
+        tree1=node(1,1,node(0,0),node(2,2))
+        
+        tree2 = node(-1,-1,node(4,1),node('a',2))
+
+        forest=mconcat(tree1,tree2)
+        self.assertEqual(to_list(forest), [[1, 1], [0, 0], [-1, -1], [2, 2], [4, 1], ['a', 2]])
     
     
-    if tree.key==key:
-        return tree.value
-    if key < tree.key:
-        if tree.leftChild == None:
-            return None
-        return find(tree.leftChild,key)
-    if key > tree.key:
-        if tree.leftChild == None:
-            return None
-        return find(tree.rightChild, key)
-
-def filter(tree, func):
-    tree_list=to_list(tree)
-    new_list=[]
-    for i in tree_list:
-        if type(i[0]) is str:
-            if func(ord(i[0])):
-                new_list.append(i)
-        else:
-            if func(i[0]):
-                new_list.append(i)
-    return treeIterator(new_list)
-
-def map(tree, func):
-    tree_list=to_list(tree)
-    new_list=[]
-    for i in tree_list:
-        i[1]=func(i[1])
-        new_list.append(i)
-    return treeIterator(new_list)
-
-def reduce(treeitor,func):
-    if treeitor.has_next():
-        res=treeitor.__next__()[1]
-    while treeitor.has_next():
-        res=func(res,treeitor.__next__()[1])
-    return res
-
-def remove(tree, key):
-    list=to_list(tree)
-    count = 0
-    for i in range(len(list)):
-        if key==list[i][0]:
-            count = 1
-            list.pop(i)
-            break
-    if count == 0:
-        raise AttributeError("The element does not exist")
-    return from_list(list)
-
-def mconcat(tree1,tree2):
-    forest1=to_list(tree1)
-    forest2=to_list(tree2)
-    forest=[]
-    if forest1 == []:
-        return from_list(forest2)
-    if forest2 == []:
-        return from_list(forest1)
-    if forest1[0][0] > forest2[0][0]:
-        forest = forest1 + forest2
-    else:
-        forest = forest2 + forest1
-    return from_list(forest)
+    @given(st.lists(st.lists(st.integers(), min_size=2, max_size=2),max_size=1))
+    def test_from_list_to_list_equality(self, test_List):
+        self.assertEqual(to_list(from_list(test_List)), test_List)
     
+    @given(st.lists(st.lists(st.integers(), min_size=2, max_size=2),max_size=1))
+    def test_monoid_identity(self, test_List):
+        self.assertEqual(to_list(mconcat(mempty(), from_list(test_List))), test_List)
+        self.assertEqual(to_list(mconcat(from_list(test_List), mempty())), test_List)
 
-class dict():
-    count=0
-    root=None
-    def getting(self,key):
-        if self.count==0:
-            return None
-        else:
-            return find(self.root,key)
-    def setting(self,key,value):
-        if self.count==0:
-            self.root=node(key,value)
-            self.count+=1
-        else:
-            add(self.root,key,value)
-
-
+if __name__ == '__main__':
+    unittest.main()
