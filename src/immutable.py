@@ -1,10 +1,10 @@
 class node:
 
-    def __init__(self,key,value,rightChild=None,leftChild=None):
+    def __init__(self,key,value,leftChild=None,rightChild=None):
         self.key=key
         self.value=value
-        self.rightChild=rightChild
         self.leftChild=leftChild
+        self.rightChild=rightChild
         self.count=0
 
 
@@ -15,7 +15,7 @@ class treeIterator:
         self.index=-1
         self.len=len(data)
         self.data=data
-    def next(self):
+    def __next__(self):
         self.index+=1
         if self.len>self.index:
             return self.data[self.index]
@@ -28,62 +28,134 @@ class treeIterator:
             return False
 
 def add(tree,key,value):
-    if tree.key == key:
-        tree.value=value
-        return True
-    if tree.key > key:
-        if tree.leftChild == None:
-            tree.leftChild = node(key, value)
+    if type(key) is str:
+        key_int = ord(key)
+        if tree.key == key_int:
+            tree.value=value
             return True
-        else:
-            return add(tree.leftChild,key,value)
-    if tree.key < key:
-        if tree.rightChild == None:
-            tree.rightChild = node(key, value)
+        if tree.key > key_int:
+            if tree.leftChild == None:
+                tree.leftChild = node(key, value)
+                return True
+            else:
+                return add(tree.leftChild,key,value)
+        if tree.key < key_int:
+            if tree.rightChild == None:
+                tree.rightChild = node(key, value)
+                return True
+            else:
+                return add(tree.rightChild,key, value)
+    else:
+        if tree.key == key:
+            tree.value=value
             return True
-        else:
-            return add(tree.rightChild,key, value)
+        if tree.key > key:
+            if tree.leftChild == None:
+                tree.leftChild = node(key, value)
+                return True
+            else:
+                return add(tree.leftChild,key,value)
+        if tree.key < key:
+            if tree.rightChild == None:
+                tree.rightChild = node(key, value)
+                return True
+            else:
+                return add(tree.rightChild,key, value)
 
 def size(tree):
     if tree != None:
-        tree.count=0
-        tree.count+=1
+        tree.count = 1
         tree.count+=size(tree.rightChild)+size(tree.leftChild)
         return tree.count
     else:
         return 0
 
+    
 def from_list(list):
     if len(list)==0:
         return None
-    temp = list.pop()
-    root = node(temp[0], temp[1])
-    while len(list)!=0:
-        temp=list.pop()
-        add(root,temp[0],temp[1])
+    if len(list) == 1:
+        root = node(list[0][0], list[0][1])
+    else:
+        first = list[0]
+        root = node(first[0], first[1])
+        for i in list[1:]:
+            add(root,i[0],i[1])
     return root
-
+    
 def to_list(tree):
     list=[]
     def  func(node,list):
         if node!=None:
+            temp_kv=[]
+            temp_kv.append(node.key)
+            temp_kv.append(node.value)
+            list.append(temp_kv)
             func(node.leftChild,list)
-            temp=[]
-            temp.append(node.key)
-            temp.append(node.value)
-            list.append(temp)
             func(node.rightChild,list)
     func(tree,list)
     return list
 
 def iterator(tree):
-    list=to_list(tree)
-    list2=[]
-    for i in list:
-        list2.append(i)
-    return treeIterator(list2)
+    tree_list=to_list(tree)
+    new_list=[]
+    for i in tree_list:
+        new_list.append(i)
+    return treeIterator(new_list)
+
+def mempty():
+    return None
 
 def find(tree,key):
+    if type(key) is str:
+        key_int = ord(key)
+        if type(tree.key) is str:
+            if ord(tree.key)==key_int:
+                return tree.value
+            if key_int < ord(tree.key):
+                if tree.leftChild == None:
+                    return None
+                return find(tree.leftChild,key)
+            if key_int > ord(tree.key):
+                if tree.leftChild == None:
+                    return None
+            return find(tree.rightChild, key)
+        else:
+            if tree.key==key_int:
+                return tree.value
+            if key_int < tree.key:
+                if tree.leftChild == None:
+                    return None
+                return find(tree.leftChild,key)
+            if key_int > tree.key:
+                if tree.leftChild == None:
+                    return None
+            return find(tree.rightChild, key)
+    else:
+        if type(tree.key) is str:
+            if ord(tree.key)==key:
+                return tree.value
+            if key < ord(tree.key):
+                if tree.leftChild == None:
+                    return None
+                return find(tree.leftChild,key)
+            if key > ord(tree.key):
+                if tree.leftChild == None:
+                    return None
+            return find(tree.rightChild, key)
+        else:
+            if tree.key==key:
+                return tree.value
+            if key < tree.key:
+                if tree.leftChild == None:
+                    return None
+                return find(tree.leftChild,key)
+            if key > tree.key:
+                if tree.leftChild == None:
+                    return None
+            return find(tree.rightChild, key)
+    
+    
     if tree.key==key:
         return tree.value
     if key < tree.key:
@@ -96,57 +168,58 @@ def find(tree,key):
         return find(tree.rightChild, key)
 
 def filter(tree, func):
-    list=to_list(tree)
-    list2=[]
-    for i in list:
-        if func(i[0]):
-             list2.append(i)
-    return treeIterator(list2)
+    tree_list=to_list(tree)
+    new_list=[]
+    for i in tree_list:
+        if type(i[0]) is str:
+            if func(ord(i[0])):
+                new_list.append(i)
+        else:
+            if func(i[0]):
+                new_list.append(i)
+    return treeIterator(new_list)
 
 def map(tree, func):
-    list=to_list(tree)
-    list2=[]
-    for i in list:
+    tree_list=to_list(tree)
+    new_list=[]
+    for i in tree_list:
         i[1]=func(i[1])
-        list2.append(i)
-    return treeIterator(list2)
+        new_list.append(i)
+    return treeIterator(new_list)
 
 def reduce(treeitor,func):
     if treeitor.has_next():
-        res=treeitor.next()[1]
+        res=treeitor.__next__()[1]
     while treeitor.has_next():
-        res=func(res,treeitor.next()[1])
+        res=func(res,treeitor.__next__()[1])
     return res
 
 def remove(tree, key):
     list=to_list(tree)
+    count = 0
     for i in range(len(list)):
         if key==list[i][0]:
+            count = 1
             list.pop(i)
             break
+    if count == 0:
+        raise AttributeError("The element does not exist")
     return from_list(list)
 
-def conact(t1,t2):
-    l1=to_list(t1)
-    l2=to_list(t2)
-    l3=[]
-    while (0<len(l1) and 0<len(l2)):
-        if l1[0][0]<l2[0][0]:
-            l3.append(l1.pop(0))
-        elif l1[0][0]>l2[0][0]:
-            l3.append(l2.pop(0))
-        elif l1[0][0]==l2[0][0]:
-            if l1[0][1]>l2[0][1]:
-                l3.append(l2.pop(0))
-                l1.pop(0)
-            else:
-                l3.append(l1.pop(0))
-                l2.pop(0)
-    while len(l1)>0:
-        l3.append(l1.pop(0))
-    while len(l2)>0:
-        l3.append(l2.pop(0))
-    return from_list(l3)
+def mconcat(tree1,tree2):
+    forest1=to_list(tree1)
+    forest2=to_list(tree2)
+    forest=[]
+    if forest1 == []:
+        return from_list(forest2)
+    if forest2 == []:
+        return from_list(forest1)
+    if forest1[0][0] > forest2[0][0]:
+        forest = forest1 + forest2
+    else:
+        forest = forest2 + forest1
+    return from_list(forest)
+    
 
 class dict():
     count=0
