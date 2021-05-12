@@ -26,9 +26,9 @@ class TestMutableDict(unittest.TestCase):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
+        dict.add('0', 2)
         dict.remove(2)
-        self.assertEqual(dict.to_list(), [[0, 2], [1, 2]])
+        self.assertEqual(dict.to_list(), [[1, 2], ['0', 2]])
         try:
             dict.remove(3)
         except AttributeError as error:
@@ -38,7 +38,7 @@ class TestMutableDict(unittest.TestCase):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
+        dict.add('0', 2)
         self.assertEqual(dict.size(), 3)
 
     def test_Conversion(self):
@@ -46,18 +46,18 @@ class TestMutableDict(unittest.TestCase):
         dict.from_list([[0, 1], [2, 1], [3, 1]])
         self.assertEqual(dict.to_list(), [[0, 1], [2, 1], [3, 1]])
 
-    def test_find(self):
+    def test_find_key(self):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
-        self.assertEqual(dict.find(2), 2)
+        dict.add('0', 2)
+        self.assertEqual(dict.find_key(2), 1)
 
     def test_iterator(self):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
+        dict.add('0', 2)
         list = dict.to_list()
         iter = dict.__iter__()
         test = []
@@ -75,13 +75,16 @@ class TestMutableDict(unittest.TestCase):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
+        dict.add('0', 2)
         list = dict.to_list()
         list2 = []
         for i in range(len(list)):
-            if func(list[i][0]):
-                list2.append(list[i])
-
+            if type(list[i][0]) is str:
+                if func(ord(list[i][0])):
+                    list2.append(list[i])
+            else:
+                if func(list[i][0]):
+                    list2.append(list[i])
         itor = dict.filter(func)
         test = []
         while itor.has_next():
@@ -95,7 +98,7 @@ class TestMutableDict(unittest.TestCase):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
+        dict.add('0', 2)
         list = dict.to_list()
         list2 = []
         for i in list:
@@ -115,19 +118,19 @@ class TestMutableDict(unittest.TestCase):
         dict = MyDict()
         dict.add(1, 2)
         dict.add(2, 2)
-        dict.add(0, 2)
+        dict.add('0', 2)
         sum = dict.reduce(func)
         self.assertEqual(sum, 6)
 
     def test_dict(self):
-        d = MyDict()
-        self.assertEqual(d.getting(1), None)
-        d.setting(0, 1)
-        self.assertEqual(d.getting(0), 1)
-        d.setting(0, 2)
-        self.assertEqual(d.getting(0), 2)
-        d.setting(1, None)
-        self.assertEqual(d.getting(1), None)
+        dict = MyDict()
+        self.assertEqual(dict.getting(1), None)
+        dict.setting(0, 1)
+        self.assertEqual(dict.getting(0), 1)
+        dict.setting(0, 2)
+        self.assertEqual(dict.getting(0), 2)
+        dict.setting(1, None)
+        self.assertEqual(dict.getting(1), None)
 
     def test_mconcat(self):
         dict1 = MyDict()
@@ -140,11 +143,11 @@ class TestMutableDict(unittest.TestCase):
         dict2.setting(-1, 1)
         dict2.add(-1, 2)
         dict2.add(3, 2)
-        dict2.add(1, 3)
+        dict2.add('1', 3)
         dict3.mconcat(dict1, dict2)
-        self.assertEqual(dict3.to_list(), [[-1, 2], [0, 2], [1, 2], [2, 2], [3, 2]])
+        self.assertEqual(dict3.to_list(), [[-1, 2], [0, 2], [1, 2], [2, 2], [3, 2], ['1', 3]])
         dict3.mconcat(dict2, dict1)
-        self.assertEqual(dict3.to_list(), [[-1, 2], [0, 2], [1, 2], [2, 2], [3, 2]])
+        self.assertEqual(dict3.to_list(), [[-1, 2], [0, 2], [1, 2], [2, 2], [3, 2], ['1', 3]])
 
     @given(st.lists(st.lists(st.integers(), min_size=2, max_size=2)))
     def test_from_list_to_list_equality(self, a):

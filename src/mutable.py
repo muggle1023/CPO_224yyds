@@ -12,11 +12,17 @@
 class Node:
 
     def __init__(self, key, value, rightChild=None, leftChild=None):
-        self.k = key
-        self.v = value
+        self.key = key
+        self.value = value
         self.rc = rightChild
         self.lc = leftChild
-        self.count = 0
+        self.parent = None
+        self.key_sum = 0
+        if isinstance(self.key, str):
+            for i in self.key:
+                self.key_sum = self.key_sum + ord(i)
+        else:
+            self.key_sum = self.key
 
 
 class TreeIterator:
@@ -40,10 +46,6 @@ class TreeIterator:
             return False
 
 
-def mempty():
-    return None
-
-
 class MyDict:
     count = 0
     root = None
@@ -52,7 +54,7 @@ class MyDict:
         if self.count == 0:
             return None
         else:
-            return self.find(key)
+            return self.find_key(key)
 
     def setting(self, key, value):
         if self.count == 0:
@@ -69,6 +71,8 @@ class MyDict:
         return TreeIterator(list2)
 
     def add(self, key, value):
+        if key is None:
+            raise TypeError("The key value cannot be None")
         if self.root is None:
             self.root = Node(key, value)
             self.count += 1
@@ -76,35 +80,39 @@ class MyDict:
         return self.addt(self.root, key, value)
 
     def addt(self, n, key, value):
-        if type(key) is str:
-            key_int = ord(key)
-            if n.k == key_int:
-                n.v = value
+        if isinstance(key, str):
+            key_int = 0
+            for i in key:
+                key_int = key_int + ord(i)
+            if n.key_sum == key_int:
+                n.value = value
                 return True
-            if n.k > key_int:
-                if n.lc is None:
-                    n.lc = Node(key, value)
-                    return True
-                else:
-                    return self.addt(n.lc, key, value)
-            if n.k < key_int:
-                if n.rc is None:
-                    n.rc = Node(key, value)
-                    return True
-                else:
-                    return self.addt(n.rc, key, value)
-        else:
-            if key == n.k:
-                n.v = value
-                return True
-            if key < n.k:
+            if n.key_sum > key_int:
                 if n.lc is None:
                     n.lc = Node(key, value)
                     self.count += 1
                     return True
                 else:
                     return self.addt(n.lc, key, value)
-            if key > n.k:
+            if n.key_sum < key_int:
+                if n.rc is None:
+                    n.rc = Node(key, value)
+                    self.count += 1
+                    return True
+                else:
+                    return self.addt(n.rc, key, value)
+        else:
+            if key == n.key_sum:
+                n.value = value
+                return True
+            if key < n.key_sum:
+                if n.lc is None:
+                    n.lc = Node(key, value)
+                    self.count += 1
+                    return True
+                else:
+                    return self.addt(n.lc, key, value)
+            if key > n.key_sum:
                 if n.rc is None:
                     n.rc = Node(key, value)
                     self.count += 1
@@ -129,8 +137,8 @@ class MyDict:
             if n is not None:
                 func(n.lc, list)
                 temp = []
-                temp.append(n.k)
-                temp.append(n.v)
+                temp.append(n.key)
+                temp.append(n.value)
                 list.append(temp)
                 func(n.rc, list)
 
@@ -143,32 +151,87 @@ class MyDict:
             if key == list[i][0]:
                 list.pop(i)
                 break
+        if self.count == 0:
+            raise AttributeError("The element does not exist")
         self.root = None
         self.count = 0
         self.from_list(list)
 
-    def find(self, key):
+    def find_key(self, key):
         return self.findt(self.root, key)
 
     def findt(self, n, key):
-        if n.k == key:
-            return n.v
-        if key < n.k:
-            if n.lc is None:
-                return None
-            return self.findt(n.lc, key)
-        if key > n.k:
-            if n.lc is None:
-                return None
+        if type(key) is str:
+            key_int = 0
+            for i in key:
+                key_int = key_int + ord(i)
+            if n.key_sum == key_int:
+                return n.value
+            if key_int < n.key_sum:
+                if n.lc is None:
+                    return None
+                return self.findt(n.lc, key_int)
+            if key_int > n.key_sum:
+                if n.lc is None:
+                    return None
+            return self.findt(n.rc, key_int)
+        else:
+            if n.key_sum == key:
+                return n.value
+            if key < n.key_sum:
+                if n.lc is None:
+                    return None
+                return self.findt(n.lc, key)
+            if key > n.key_sum:
+                if n.lc is None:
+                    return None
             return self.findt(n.rc, key)
+        # else:
+        #     if type(n.key) is str:
+        #         if ord(n.k) is key:
+        #             return n.value
+        #         if key < ord(n.k):
+        #             if n.lc is None:
+        #                 return None
+        #             return self.findt(n.lc, key)
+        #         if key > ord(n.k):
+        #             if n.lc is None:
+        #                 return None
+        #         return self.findt(n.rc, key)
+        #     else:
+        #         if n.key == key:
+        #             return n.value
+        #         if key < n.key:
+        #             if n.lc is None:
+        #                 return None
+        #             return self.findt(n.lc, key)
+        #         if key > n.key:
+        #             if n.lc is None:
+        #                 return None
+        #         return self.findt(n.rc, key)
+
+        # if n.k == key:
+        #     return n.value
+        # if key < n.key:
+        #     if n.lc is None:
+        #         return None
+        #     return self.findt(n.lc, key)
+        # if key > n.key:
+        #     if n.lc is None:
+        #         return None
+        #     return self.findt(n.rc, key)
 
     def filter(self, func):
-        list = self.to_list()
-        list2 = []
-        for i in list:
-            if func(i[0]):
-                list2.append(i)
-        return TreeIterator(list2)
+        tree_list = self.to_list()
+        new_list = []
+        for i in tree_list:
+            if type(i[0]) is str:
+                if func(ord(i[0])):
+                    new_list.append(i)
+            else:
+                if func(i[0]):
+                    new_list.append(i)
+        return TreeIterator(new_list)
 
     def map(self, func):
         list = self.to_list()
@@ -186,34 +249,50 @@ class MyDict:
             res = func(res, treeitor.__next__()[1])
         return res
 
-    def mconcat(self, dict1, dict2):
-        if dict1 is not None and dict2 is not None:
-            list1 = dict1.to_list()
-            list2 = dict2.to_list()
-        else:
-            if dict1 is None and dict2 is not None:
-                list1 = []
-                list2 = dict2.to_list()
-            if dict2 is None and dict1 is not None:
-                list2 = []
-                list1 = dict1.to_list()
-            if dict1 is None and dict2 is None:
-                list1 = []
-                list2 = []
+    def mempty(self):
+        self.root = None
+        return self
 
-        list3 = []
-        while 0 < len(list1) and 0 < len(list2):
-            if list1[0][0] != list2[0][0]:
-                list3.append(list1.pop(0) if list1[0][0] < list2[0][0] else list2.pop(0))
-            else:
-                if list1[0][1] > list2[0][1]:
-                    list3.append(list2.pop(0))
-                    list1.pop(0)
-                else:
-                    list3.append(list1.pop(0))
-                    list2.pop(0)
-        while len(list1) > 0:
-            list3.append(list1.pop(0))
-        while len(list2) > 0:
-            list3.append(list2.pop(0))
-        return self.from_list(list3)
+    def mconcat(self, dict1, dict2):
+        list1 = dict1.to_list()
+        list2 = dict2.to_list()
+        tmp = []
+        if list1 == []:
+            return self.from_list(list2)
+        if list2 == []:
+            return self.from_list(list1)
+        if list1[0][0] > list1[0][0]:
+            tmp = list1 + list2
+        else:
+            tmp = list2 + list1
+        return self.from_list(tmp)
+        # if dict1 is not None and dict2 is not None:
+        #     list1 = dict1.to_list()
+        #     list2 = dict2.to_list()
+        # else:
+        #     if dict1 is None and dict2 is not None:
+        #         list1 = []
+        #         list2 = dict2.to_list()
+        #     if dict2 is None and dict1 is not None:
+        #         list2 = []
+        #         list1 = dict1.to_list()
+        #     if dict1 is None and dict2 is None:
+        #         list1 = []
+        #         list2 = []
+
+        # list3 = []
+        # while 0 < len(list1) and 0 < len(list2):
+        #     if list1[0][0] != list2[0][0]:
+        #         list3.append(list1.pop(0) if list1[0][0] < list2[0][0] else list2.pop(0))
+        #     else:
+        #         if list1[0][1] > list2[0][1]:
+        #             list3.append(list2.pop(0))
+        #             list1.pop(0)
+        #         else:
+        #             list3.append(list1.pop(0))
+        #             list2.pop(0)
+        # while len(list1) > 0:
+        #     list3.append(list1.pop(0))
+        # while len(list2) > 0:
+        #     list3.append(list2.pop(0))
+        # return self.from_list(list3)
