@@ -154,25 +154,14 @@ class TestMutableDict(unittest.TestCase):
         # The generated test data is processed
         dict = MyDict()
         dict.from_list(a)
-        print(dict.from_list(a))
-        print(dict.to_list())
-        print(f"{a=}")
         self.assertEqual(dict.to_list(), a)
 
-    @given(st.lists(st.lists(st.integers(), min_size=2, max_size=2)))
-    def test_monoid_identity(self, a):
+    @given(st.lists(st.lists(st.integers(), min_size=2, max_size=2), max_size=1))
+    def test_monoid_identity(self, test_List):
         # The generated test data is processed
         dict1 = MyDict()
         dict2 = MyDict()
-        d = {}
-        for i in a:
-            d[i[0]] = i[1]
-        key_value = list(d.keys())
-        key_value.sort()
-        value_list = list(d.values())
-        c = []
-        for i in range(len(key_value)):
-            c.append([key_value[i], value_list[i]])
+        dict1.from_list(test_List)
 
         dict2.mconcat(dict1.mempty(), dict2.from_list(c))
         self.assertEqual(dict2.to_list(), c)

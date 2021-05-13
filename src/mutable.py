@@ -126,6 +126,8 @@ class MyDict:
     def from_list(self, list):
         if len(list) == 0:
             return None
+        if len(list) == 1:
+            self.root = Node(list[0][0], list[0][1])
         while len(list) != 0:
             temp = list.pop()
             self.add(temp[0], temp[1])
@@ -298,3 +300,11 @@ class MyDict:
         # while len(list2) > 0:
         #     list3.append(list2.pop(0))
         # return self.from_list(list3)
+
+
+# if __name__ == "__main__":
+#     dict = MyDict()
+#     a = [[0, 0]]
+#     dict.from_list(a)
+#     b = dict.to_list()
+#     print(b)
