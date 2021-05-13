@@ -132,6 +132,8 @@ class MyDict:
 
     def to_list(self):
         list = []
+        if self.root is None:
+            return []
 
         def func(n, list):
             if n is not None:
