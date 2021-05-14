@@ -161,12 +161,13 @@ class TestMutableDict(unittest.TestCase):
         # The generated test data is processed
         dict1 = MyDict()
         dict2 = MyDict()
+        dict3 = MyDict()
         dict1.from_list(test_List)
-
-        dict2.mconcat(dict1.mempty(), dict2.from_list(c))
-        self.assertEqual(dict2.to_list(), c)
-
-        dict1.mconcat(dict1.from_list(c), dict2.mempty())
-        self.assertEqual(dict1.to_list(), c)
+        b = dict1.mempty()
+        dict2.mconcat(dict1, b)
+        self.assertEqual(dict1.to_list(), dict2.to_list())
+        self.assertEqual(dict2.to_list(), dict1.to_list())
+        dict3.mconcat(b, dict1)
+        self.assertEqual(dict2.to_list(), dict3.to_list())
 if __name__ == "__main__":
     unittest.main()

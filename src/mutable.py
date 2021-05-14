@@ -47,8 +47,9 @@ class TreeIterator:
 
 
 class MyDict:
-    count = 0
-    root = None
+    def __init__(self):
+        self.root = None
+        self.count = 0
 
     def getting(self, key):
         if self.count == 0:
@@ -125,12 +126,14 @@ class MyDict:
 
     def from_list(self, list):
         if len(list) == 0:
-            return None
-        if len(list) == 1:
-            self.root = Node(list[0][0], list[0][1])
-        while len(list) != 0:
-            temp = list.pop()
-            self.add(temp[0], temp[1])
+            self.root = None
+            return self.root
+        else:
+            first = list[0]
+            self.root = Node(first[0], first[1])
+            for i in list[1:]:
+                self.add(i[0], i[1])
+        return self.root
 
     def to_list(self):
         list = []
@@ -258,6 +261,7 @@ class MyDict:
         return self
 
     def mconcat(self, dict1, dict2):
+        # print(type(dict1), type(dict2))
         list1 = dict1.to_list()
         list2 = dict2.to_list()
         tmp = []
@@ -267,9 +271,10 @@ class MyDict:
             return self.from_list(list1)
         if list1[0][0] > list1[0][0]:
             tmp = list1 + list2
+            return self.from_list(tmp)
         else:
             tmp = list2 + list1
-        return self.from_list(tmp)
+            return self.from_list(tmp)
         # if dict1 is not None and dict2 is not None:
         #     list1 = dict1.to_list()
         #     list2 = dict2.to_list()
@@ -283,7 +288,8 @@ class MyDict:
         #     if dict1 is None and dict2 is None:
         #         list1 = []
         #         list2 = []
-
+        # print("list1:", list1)
+        # print("list2:", list2)
         # list3 = []
         # while 0 < len(list1) and 0 < len(list2):
         #     if list1[0][0] != list2[0][0]:
@@ -299,12 +305,13 @@ class MyDict:
         #     list3.append(list1.pop(0))
         # while len(list2) > 0:
         #     list3.append(list2.pop(0))
+        # print("list3", list3)
         # return self.from_list(list3)
 
 
-# if __name__ == "__main__":
-#     dict = MyDict()
-#     a = [[0, 0]]
-#     dict.from_list(a)
-#     b = dict.to_list()
-#     print(b)
+if __name__ == "__main__":
+    dict = MyDict()
+    a = dict.mempty()
+    # dict.from_list(a)
+    b = dict.to_list()
+    print(b)
